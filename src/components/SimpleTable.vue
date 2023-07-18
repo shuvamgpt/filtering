@@ -3,18 +3,20 @@
     <table>
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Age</th>
-          <th>Email</th>
-          <th>Country</th>
+          <th @click="sortTable('name')">Name <span v-if="sortBy === 'name'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
+          <th @click="sortTable('age')">Age <span v-if="sortBy === 'age'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
+          <th @click="sortTable('email')">Email <span v-if="sortBy === 'email'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
+          <th @click="sortTable('country')">Country <span v-if="sortBy === 'country'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
+          <th>Responses</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in dummyData" :key="item.id">
+        <tr v-for="item in sortedData" :key="item.id">
           <td>{{ item.name }}</td>
           <td>{{ item.age }}</td>
           <td>{{ item.email }}</td>
           <td>{{ item.country }}</td>
+          <td :style="{ backgroundColor: item.response === 'Yes' ? 'green' : 'red' }">{{ item.response }}</td>
         </tr>
       </tbody>
     </table>
@@ -25,19 +27,49 @@
 export default {
   data() {
     return {
-      dummyData: [
-        { id: 1, name: 'John Doe', age: 25, email: 'john@example.com', country: 'USA' },
-        { id: 2, name: 'Alice Smith', age: 30, email: 'alice@example.com', country: 'Canada' },
-        { id: 3, name: 'Bob Johnson', age: 22, email: 'bob@example.com', country: 'UK' },
-        { id: 4, name: 'Emma Lee', age: 28, email: 'emma@example.com', country: 'Australia' },
-        { id: 5, name: 'Michael Wang', age: 27, email: 'michael@example.com', country: 'China' },
-        { id: 6, name: 'Sophia Kim', age: 29, email: 'sophia@example.com', country: 'South Korea' },
-        { id: 7, name: 'William Tan', age: 24, email: 'william@example.com', country: 'Singapore' },
-        { id: 8, name: 'Olivia Garcia', age: 26, email: 'olivia@example.com', country: 'Spain' },
-        { id: 9, name: 'Noah Martinez', age: 23, email: 'noah@example.com', country: 'Mexico' },
-        { id: 10, name: 'Isabella Nguyen', age: 31, email: 'isabella@example.com', country: 'Vietnam' },
+      sortBy: '',
+      sortDirection: '',  
+      dummyData: [ 
+        { id: 1, name: 'John Doe', age: 25, email: 'john@example.com', country: 'USA', response: 'No' },
+        { id: 2, name: 'Alice Smith', age: 30, email: 'alice@example.com', country: 'Canada', response: 'No' },
+        { id: 3, name: 'Bob Johnson', age: 22, email: 'bob@example.com', country: 'UK', response: 'No' },
+        { id: 4, name: 'Emma Lee', age: 28, email: 'emma@example.com', country: 'Australia', response: 'Yes' },
+        { id: 5, name: 'Michael Wang', age: 27, email: 'michael@example.com', country: 'China', response: 'No' },
+        { id: 6, name: 'Sophia Kim', age: 29, email: 'sophia@example.com', country: 'South Korea', response: 'No' },
+        { id: 7, name: 'William Tan', age: 24, email: 'william@example.com', country: 'Singapore', response: 'Yes' },
+        { id: 8, name: 'Olivia Garcia', age: 26, email: 'olivia@example.com', country: 'Spain', response: 'Yes' },
+        { id: 9, name: 'Noah Martinez', age: 23, email: 'noah@example.com', country: 'Mexico', response: 'No' },
+        { id: 10, name: 'Isabella Nguyen', age: 31, email: 'isabella@example.com', country: 'Vietnam', response: 'Yes' },
       ],
     };
+  },
+  computed: {
+    sortedData() {
+      const sortedData = this.dummyData.slice();
+      if (this.sortBy && this.sortBy !== 'response') {
+        sortedData.sort((a, b) => {
+          if (this.sortBy === 'name' || this.sortBy === 'email' || this.sortBy === 'country') {
+            return a[this.sortBy].localeCompare(b[this.sortBy]);
+          } else if (this.sortBy === 'age') {
+            return a[this.sortBy] - b[this.sortBy];
+          }
+          return 0;
+        });
+      }
+      return this.sortDirection === 'desc' ? sortedData.reverse() : sortedData;
+    },
+  },
+  methods: {
+    sortTable(column) {
+      if (column !== 'response') {
+        if (this.sortBy === column) {
+          this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+          this.sortBy = column;
+          this.sortDirection = 'asc';
+        }
+      }
+    },
   },
 };
 </script>
@@ -62,5 +94,6 @@ th, td {
 
 th {
   background-color: #f2f2f2;
+  cursor: pointer;
 }
 </style>
