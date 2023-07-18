@@ -3,51 +3,50 @@
     <table>
       <thead>
         <tr>
-          <th @click="sortTable('name')">
+          <th @click="sortTable('name', $event)">
             Name
+            <input type="text" v-model="filters.name" @input="applyFilters" />
             <span v-if="currentColumn === 'name'">
-              {{ sortDirection === "asc" ? "↑" : "↓" }}</span
-            >
+              {{ sortDirection === "asc" ? "↑" : "↓" }}
+            </span>
           </th>
-          <th @click="sortTable('age')">
+          <th @click="sortTable('age', $event)">
             Age
-            <span v-if="currentColumn === 'age'">{{
-              sortDirection === "asc" ? "↑" : "↓"
-            }}</span>
+            <input type="number" v-model="filters.age" @input="applyFilters" />
+            <span v-if="currentColumn === 'age'">
+              {{ sortDirection === "asc" ? "↑" : "↓" }}
+            </span>
           </th>
-          <th @click="sortTable('email')">
+          <th @click="sortTable('email', $event)">
             Email
-            <span v-if="currentColumn === 'email'">{{
-              sortDirection === "asc" ? "↑" : "↓"
-            }}</span>
+            <input type="text" v-model="filters.email" @input="applyFilters" />
+            <span v-if="currentColumn === 'email'">
+              {{ sortDirection === "asc" ? "↑" : "↓" }}
+            </span>
           </th>
-          <th @click="sortTable('country')">
+          <th @click="sortTable('country', $event)">
             Country
-            <span v-if="currentColumn === 'country'">{{
-              sortDirection === "asc" ? "↑" : "↓"
-            }}</span>
+            <input type="text" v-model="filters.country" @input="applyFilters" />
+            <span v-if="currentColumn === 'country'">
+              {{ sortDirection === "asc" ? "↑" : "↓" }}
+            </span>
           </th>
           <th>Responses</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="item in sortedData" :key="item.id">
+        <tr v-for="item in filteredData" :key="item.id">
           <td>{{ item.name }}</td>
           <td>{{ item.age }}</td>
           <td>{{ item.email }}</td>
           <td>{{ item.country }}</td>
-          <td
-            :style="{
-              backgroundColor: item.response === 'Yes' ? 'green' : 'red',
-            }"
-          >
-            {{ item.response }}
-          </td>
+          <td :style="{ backgroundColor: item.response === 'Yes' ? 'green' : 'red' }">{{ item.response }}</td>
         </tr>
       </tbody>
     </table>
   </div>
 </template>
+
 
 <script>
 export default {
@@ -55,6 +54,12 @@ export default {
     return {
       currentColumn: "",
       sortDirection: "",
+      filters: {
+        name: "",
+        age: "",
+        email: "",
+        country: "",
+      },
       dummyData: [
         {
           id: 1,
@@ -130,7 +135,7 @@ export default {
         },
         {
           id: 10,
-          name: "Isabella Nguyen",
+          name: "Isabella john",
           age: 31,
           email: "isabella@example.com",
           country: "Vietnam",
@@ -140,10 +145,20 @@ export default {
     };
   },
   computed: {
-    sortedData() {
-      const sortedData = this.dummyData.slice();
+    filteredData() {
+      let filteredData = this.dummyData.slice();
+      Object.keys(this.filters).forEach((column) => {
+        if (this.filters[column]) {
+          filteredData = filteredData.filter((item) =>
+            String(item[column])
+              .toLowerCase()
+              .includes(this.filters[column].toLowerCase())
+          );
+        }
+      });
+
       if (this.currentColumn && this.currentColumn !== "response") {
-        sortedData.sort((a, b) => {
+        filteredData.sort((a, b) => {
           if (
             this.currentColumn === "name" ||
             this.currentColumn === "email" ||
@@ -155,13 +170,17 @@ export default {
           }
           return 0;
         });
+        if (this.sortDirection === "desc") {
+          filteredData.reverse();
+        }
       }
-      return this.sortDirection === "desc" ? sortedData.reverse() : sortedData;
+      return filteredData;
     },
   },
   methods: {
-    sortTable(column) {
-      if (column !== "response") {
+    sortTable(column, event) {
+      const isInputField = ["INPUT", "TEXTAREA"].includes(event.target.tagName);
+      if (!isInputField && column !== "response") {
         if (this.currentColumn === column) {
           this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
         } else {
@@ -170,6 +189,7 @@ export default {
         }
       }
     },
+    applyFilters() {},
   },
 };
 </script>
