@@ -3,10 +3,10 @@
     <table>
       <thead>
         <tr>
-          <th @click="sortTable('name')">Name <span v-if="sortBy === 'name'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
-          <th @click="sortTable('age')">Age <span v-if="sortBy === 'age'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
-          <th @click="sortTable('email')">Email <span v-if="sortBy === 'email'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
-          <th @click="sortTable('country')">Country <span v-if="sortBy === 'country'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
+          <th @click="sortTable('name')">Name <span v-if="currentColumn === 'name'"> {{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
+          <th @click="sortTable('age')">Age <span v-if="currentColumn === 'age'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
+          <th @click="sortTable('email')">Email <span v-if="currentColumn === 'email'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
+          <th @click="sortTable('country')">Country <span v-if="currentColumn === 'country'">{{ sortDirection === 'asc' ? '↑' : '↓' }}</span></th>
           <th>Responses</th>
         </tr>
       </thead>
@@ -27,7 +27,7 @@
 export default {
   data() {
     return {
-      sortBy: '',
+      currentColumn: '',
       sortDirection: '',  
       dummyData: [ 
         { id: 1, name: 'John Doe', age: 25, email: 'john@example.com', country: 'USA', response: 'No' },
@@ -46,12 +46,12 @@ export default {
   computed: {
     sortedData() {
       const sortedData = this.dummyData.slice();
-      if (this.sortBy && this.sortBy !== 'response') {
+      if (this.currentColumn && this.currentColumn !== 'response') {
         sortedData.sort((a, b) => {
-          if (this.sortBy === 'name' || this.sortBy === 'email' || this.sortBy === 'country') {
-            return a[this.sortBy].localeCompare(b[this.sortBy]);
-          } else if (this.sortBy === 'age') {
-            return a[this.sortBy] - b[this.sortBy];
+          if (this.currentColumn === 'name' || this.currentColumn === 'email' || this.currentColumn === 'country') {
+            return a[this.currentColumn].localeCompare(b[this.currentColumn]);
+          } else if (this.currentColumn === 'age') {
+            return a[this.currentColumn] - b[this.currentColumn];
           }
           return 0;
         });
@@ -62,10 +62,10 @@ export default {
   methods: {
     sortTable(column) {
       if (column !== 'response') {
-        if (this.sortBy === column) {
+        if (this.currentColumn === column) {
           this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
         } else {
-          this.sortBy = column;
+          this.currentColumn = column;
           this.sortDirection = 'asc';
         }
       }
