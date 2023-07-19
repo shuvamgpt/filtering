@@ -1,37 +1,113 @@
 <template>
   <div class="table-container">
+    <div class="universal-search">
+      <input
+        type="text"
+        v-model="universalSearch"
+        placeholder="Search"
+        @input="applyFilters"
+      />
+    </div>
     <table>
       <thead>
         <tr>
-          <th @click="sortTable('name', $event)">
+          <th>
             Name
-            <input type="text" v-model="filters.name" @input="applyFilters" />
-            <span v-if="currentColumn === 'name'">
-              {{ sortDirection === "asc" ? "↑" : "↓" }}
-            </span>
+
+            <div class="option-tooltip" v-show="showOptions.name">
+              <ul>
+                <li v-for="option in options.name" :key="option">
+                  <label>
+                    <input
+                      type="checkbox"
+                      v-model="filters.name"
+                      :value="option"
+                      @change="applyFilters"
+                    />
+                    {{ option }}
+                  </label>
+                </li>
+              </ul>
+            </div>
+            <button class="option-toggle" @click="toggleOptions('name')">
+              {{ showOptions.name ? "Hide" : "Show" }} Options
+            </button>
           </th>
-          <th @click="sortTable('age', $event)">
+          <th>
             Age
-            <input type="number" v-model="filters.age" @input="applyFilters" />
-            <span v-if="currentColumn === 'age'">
-              {{ sortDirection === "asc" ? "↑" : "↓" }}
-            </span>
+            <div class="option-tooltip" v-show="showOptions.age">
+              <ul>
+                <li v-for="option in options.age" :key="option">
+                  <label>
+                    <input
+                      type="checkbox"
+                      v-model="filters.age"
+                      :value="option"
+                      @change="applyFilters"
+                    />
+                    {{ option }}
+                  </label>
+                </li>
+              </ul>
+            </div>
+            <button class="option-toggle" @click="toggleOptions('age')">
+              {{ showOptions.age ? "Hide" : "Show" }} Options
+            </button>
           </th>
-          <th @click="sortTable('email', $event)">
+          <th>
             Email
-            <input type="text" v-model="filters.email" @input="applyFilters" />
-            <span v-if="currentColumn === 'email'">
-              {{ sortDirection === "asc" ? "↑" : "↓" }}
-            </span>
+            <div class="option-tooltip" v-show="showOptions.email">
+              <ul>
+                <li v-for="option in options.email" :key="option">
+                  <label>
+                    <input
+                      type="checkbox"
+                      v-model="filters.email"
+                      :value="option"
+                      @change="applyFilters"
+                    />
+                    {{ option }}
+                  </label>
+                </li>
+              </ul>
+            </div>
+            <button class="option-toggle" @click="toggleOptions('email')">
+              {{ showOptions.email ? "Hide" : "Show" }} Options
+            </button>
           </th>
-          <th @click="sortTable('country', $event)">
+          <th>
             Country
-            <input type="text" v-model="filters.country" @input="applyFilters" />
-            <span v-if="currentColumn === 'country'">
-              {{ sortDirection === "asc" ? "↑" : "↓" }}
-            </span>
+            <div class="option-tooltip" v-show="showOptions.country">
+              <ul>
+                <li v-for="option in options.country" :key="option">
+                  <label>
+                    <input
+                      type="checkbox"
+                      v-model="filters.country"
+                      :value="option"
+                      @change="applyFilters"
+                    />
+                    {{ option }}
+                  </label>
+                </li>
+              </ul>
+            </div>
+            <button class="option-toggle" @click="toggleOptions('country')">
+              {{ showOptions.country ? "Hide" : "Show" }} Options
+            </button>
           </th>
-          <th>Responses</th>
+          <th>
+            Responses
+            <button class="sort-toggle" @click="sortTable('response')">
+              {{
+                currentColumn === "response"
+                  ? sortDirection === "asc"
+                    ? "▲"
+                    : "▼"
+                  : ""
+              }}
+            </button>
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -40,26 +116,44 @@
           <td>{{ item.age }}</td>
           <td>{{ item.email }}</td>
           <td>{{ item.country }}</td>
-          <td :style="{ backgroundColor: item.response === 'Yes' ? 'green' : 'red' }">{{ item.response }}</td>
+          <td
+            :style="{
+              backgroundColor: item.response === 'Yes' ? 'green' : 'red',
+            }"
+          >
+            {{ item.response }}
+          </td>
         </tr>
       </tbody>
     </table>
   </div>
 </template>
 
-
 <script>
 export default {
   data() {
     return {
+      showOptions: {
+        name: false,
+        age: false,
+        email: false,
+        country: false,
+      },
       currentColumn: "",
       sortDirection: "",
       filters: {
-        name: "",
-        age: "",
-        email: "",
-        country: "",
+        name: [],
+        age: [],
+        email: [],
+        country: [],
       },
+      options: {
+        name: [],
+        age: [],
+        email: [],
+        country: [],
+      },
+      universalSearch: "",
       dummyData: [
         {
           id: 1,
@@ -144,19 +238,28 @@ export default {
       ],
     };
   },
+  created() {
+    this.extractOptions();
+  },
   computed: {
     filteredData() {
       let filteredData = this.dummyData.slice();
       Object.keys(this.filters).forEach((column) => {
-        if (this.filters[column]) {
+        if (this.filters[column].length > 0) {
           filteredData = filteredData.filter((item) =>
-            String(item[column])
-              .toLowerCase()
-              .includes(this.filters[column].toLowerCase())
+            this.filters[column].includes(item[column])
           );
         }
       });
 
+      if (this.universalSearch) {
+        const searchQuery = this.universalSearch.toLowerCase();
+        filteredData = filteredData.filter((item) =>
+          Object.values(item).some((value) =>
+            String(value).toLowerCase().includes(searchQuery)
+          )
+        );
+      }
       if (this.currentColumn && this.currentColumn !== "response") {
         filteredData.sort((a, b) => {
           if (
@@ -173,23 +276,37 @@ export default {
         if (this.sortDirection === "desc") {
           filteredData.reverse();
         }
+      } else if (this.currentColumn === "response") {
+        filteredData.sort((a, b) => {
+          return a.response.localeCompare(b.response);
+        });
       }
       return filteredData;
     },
   },
   methods: {
-    sortTable(column, event) {
-      const isInputField = ["INPUT", "TEXTAREA"].includes(event.target.tagName);
-      if (!isInputField && column !== "response") {
-        if (this.currentColumn === column) {
-          this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
-        } else {
-          this.currentColumn = column;
-          this.sortDirection = "asc";
-        }
+    extractOptions() {
+      Object.keys(this.filters).forEach((column) => {
+        const uniqueOptions = [
+          ...new Set(this.dummyData.map((item) => item[column])),
+        ];
+        this.options[column] = uniqueOptions;
+      });
+    },
+    toggleOptions(column) {
+      this.showOptions[column] = !this.showOptions[column];
+    },
+    sortTable(column) {
+      if (this.currentColumn === column) {
+        this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
+      } else {
+        this.currentColumn = column;
+        this.sortDirection = "asc";
       }
     },
-    applyFilters() {},
+    applyFilters() {
+      this.extractOptions();
+    },
   },
 };
 </script>
@@ -215,6 +332,46 @@ td {
 
 th {
   background-color: #f2f2f2;
+  cursor: pointer;
+}
+
+.option-toggle {
+  margin-left: 8px;
+}
+
+.option-tooltip {
+  position: relative;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.option-tooltip ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  left: 0;
+  width: 200px;
+}
+
+.option-tooltip li {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.option-tooltip li:hover {
+  background-color: #f2f2f2;
+}
+
+.sort-toggle {
+  border: none;
+  background: none;
+  font-size: 1.2rem;
   cursor: pointer;
 }
 </style>
