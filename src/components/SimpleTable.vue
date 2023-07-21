@@ -1,20 +1,20 @@
 <template>
-   
     <div>
         <p>Inside simpletable</p>
         <div>
             <v-data-table
-            :headers="headers"
-            :items="desserts"
-            :search="search"
-          ></v-data-table>
+                :headers="headers"
+                :items="desserts"
+                :search="search"
+            >
+            </v-data-table>
         </div>
-        
     </div>
-  </template>
+</template>
   
-  <script>
+<script>
   export default {
+    name: "simpleTable",
     data() {
       return {
         search: '',
@@ -115,11 +115,10 @@
         ],
       };
     },
-  };
-  </script>
+  }
+</script>
 
-  <style scoped>
- 
+<style scoped>
 
 </style>
   
