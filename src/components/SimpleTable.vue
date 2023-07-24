@@ -20,7 +20,7 @@
                   {{ header.text }}
                 </template>
                 <template v-else>
-                  <v-row align="center">
+                  <v-row align="center" class="filter-row">
                     <v-col>
                       <v-select
                         v-if="filterOptions[header.value].length > 0"
@@ -31,7 +31,11 @@
                         chips
                         small-chips
                       ></v-select>
-                      <v-btn v-else @click="resetFilter(header.value)">Reset</v-btn>
+                    </v-col>
+                    <v-col>
+                      <v-btn class="reset-btn" @click="resetFilter(header.value)">
+                        Reset
+                      </v-btn>
                     </v-col>
                   </v-row>
                 </template>
@@ -45,8 +49,9 @@
             :options.sync="paginationOptions"
             :server-items-length="totalData"
             :footer-props="{
-                'items-per-page-options': [5, 10, 15],
+              'items-per-page-options': [5, 10, 15],
             }"
+            class="vslot"
           >
             <template v-slot:item="{ item }">
               <tr>
@@ -63,6 +68,18 @@
       </v-app>
     </div>
   </template>
+  
+  <style scoped>
+  .filter-row {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .reset-btn {
+    margin-left: 8px;
+  }
+  </style>
+  
   
   <script>
   import dessertsData from "./desserts.js";
@@ -84,9 +101,8 @@
         filterOptions: {},
         filterValues: {},
         paginationOptions: {},
-        totalData: 12
+        // totalData: 
       };
-      
     },
     computed: {
       filteredDesserts() {
@@ -123,5 +139,7 @@
   };
   </script>
   
-  <style scoped> </style>
+  <style scoped>
+
+  </style>
   
