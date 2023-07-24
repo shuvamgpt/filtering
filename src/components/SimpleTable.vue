@@ -13,38 +13,6 @@
             hide-details
           ></v-text-field>
         </v-card-title>
-        <!-- start -->
-        <v-container>
-          <v-row :key="header.value" v-for="header in headers">
-            <v-col :key="header.value">
-              <template v>
-                <v-row align="center" class="filter-row">
-                  <v-col>
-                    <v-select
-                      v-if="filterOptions[header.value].length > 0"
-                      v-model="filterValues[header.value]"
-                      :items="filterOptions[header.value]"
-                      label="Filter"
-                      multiple
-                      chips
-                      small-chips
-                    ></v-select>
-                  </v-col>
-                  <v-col>
-                    <v-btn class="reset-btn" @click="resetFilter(header.value)">
-                      Reset
-                    </v-btn>
-                  </v-col>
-
-                  <v-col>
-                    <v-btn class="new-btn">Filter</v-btn>
-                  </v-col>
-                </v-row>
-              </template>
-            </v-col>
-          </v-row>
-        </v-container>
-        <!-- end -->
         <v-data-table
           :headers="headers"
           :items="filteredDesserts"
@@ -54,8 +22,49 @@
           :footer-props="{
             'items-per-page-options': [5, 10, 15],
           }"
-          class="vslot"
+          fixed-header
+          :height="550"
+          :loading="tableLoading"
+          loading-text="Loading...Please wait"
+          :custom-filter="filterTable"
         >
+          <template
+            v-for="(header, index) in headers"
+            v-slot:[`header.${header.value}`]
+          >
+            <div :key="index">
+              <p class="header-text">{{ header.text }}</p>
+              <v-row align="center">
+                <v-col>
+                  <v-select
+                    v-if="filterOptions[header.value].length > 0"
+                    v-model="filterValues[header.value]"
+                    :items="filterOptions[header.value]"
+                    label="Filter"
+                    multiple
+                    chips
+                    small-chips
+                    clearable
+                  >
+                    <template v-slot:prepend-item>
+                      <v-list-item @click="resetFilter(header.value)">
+                        <v-list-item-action>
+                          <v-icon>mdi-refresh</v-icon>
+                        </v-list-item-action>
+                        <v-list-item-content>
+                          <v-list-item-title>Reset</v-list-item-title>
+                        </v-list-item-content>
+                      </v-list-item>
+                    </template>
+                  </v-select>
+                  <v-select v-else @click="resetFilter(header.value)"
+                    >Reset</v-select
+                  >
+                </v-col>
+              </v-row>
+            </div>
+          </template>
+
           <template v-slot:item="{ item }">
             <tr>
               <td>{{ item.name }}</td>
@@ -63,7 +72,9 @@
               <td>{{ item.fat }}</td>
               <td>{{ item.carbs }}</td>
               <td>{{ item.protein }}</td>
-              <td>{{ item.iron }}</td>
+              <td :class="getResponseClass(item.response)">
+                {{ item.response }}
+              </td>
             </tr>
           </template>
         </v-data-table>
@@ -86,13 +97,14 @@ export default {
         { text: "Fat (g)", value: "fat" },
         { text: "Carbs (g)", value: "carbs" },
         { text: "Protein (g)", value: "protein" },
-        { text: "Iron (%)", value: "iron" },
+        { text: "Response", value: "response" },
       ],
       desserts: dessertsData,
       filterOptions: {},
       filterValues: {},
       paginationOptions: {},
-      // totalData:
+      // totalData: 0,
+      // tableLoading: false
     };
   },
   computed: {
@@ -110,8 +122,8 @@ export default {
             filters.carbs.includes(dessert.carbs.toString())) &&
           (filters.protein.length === 0 ||
             filters.protein.includes(dessert.protein.toString())) &&
-          (filters.iron.length === 0 ||
-            filters.iron.includes(dessert.iron.toString()))
+          (filters.response.length === 0 ||
+            filters.response.includes(dessert.response.toString()))
         );
       });
     },
@@ -132,21 +144,25 @@ export default {
     resetFilter(column) {
       this.filterValues[column] = [];
     },
+    getResponseClass(response) {
+      return response === "Yes" ? "response-yes" : "response-no";
+    },
   },
 };
 </script>
 
 <style scoped>
-.filter-row {
-  display: flex;
-  justify-content: space-between;
+:deep .header-text {
+  margin-bottom: 0px !important;
 }
 
-.reset-btn {
-  margin-left: 8px;
+.response-yes {
+  background-color: green;
+  color: white;
 }
 
-.new-btn {
-  margin-left: 8px;
+.response-no {
+  background-color: red;
+  color: white;
 }
 </style>
