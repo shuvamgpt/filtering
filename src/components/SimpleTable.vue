@@ -13,7 +13,7 @@
               hide-details
             ></v-text-field>
           </v-card-title>
-          <v-container>
+          <!-- <v-container>
             <v-row :key="header.value" v-for="header in headers">
               <v-col :key="header.value">
                 <template v-if="header.value === 'name'">
@@ -37,7 +37,7 @@
                 </template>
               </v-col>
             </v-row>
-          </v-container>
+          </v-container> -->
           <v-data-table
             :headers="headers"
             :items="filteredDesserts"
@@ -47,7 +47,32 @@
             :footer-props="{
                 'items-per-page-options': [5, 10, 15],
             }"
+            fixed-header
+            :height="550"
+            :loading = "tableLoading"
+            loading-text="Loading...Please wait"
+            :custom-filter="filterTable"
           >
+          <template v-for="(header,index) in headers" v-slot:[`header.${header.value}`]>
+            <div :key="index">
+              <p class="header-text">{{ header.text }}</p>
+              <v-row align="center">
+                <v-col>
+                  <v-select
+                    v-if="filterOptions[header.value].length > 0"
+                    v-model="filterValues[header.value]"
+                    :items="filterOptions[header.value]"
+                    label="Filter"
+                    multiple
+                    chips
+                    small-chips
+                    clearable
+                  ></v-select>
+                  <v-btn v-else @click="resetFilter(header.value)">Reset</v-btn>
+                </v-col>
+              </v-row>
+            </div>
+          </template>
             <template v-slot:item="{ item }">
               <tr>
                 <td>{{ item.name }}</td>
@@ -84,7 +109,8 @@
         filterOptions: {},
         filterValues: {},
         paginationOptions: {},
-        totalData: 12
+        // totalData: 0,
+        tableLoading: false
       };
       
     },
@@ -123,5 +149,9 @@
   };
   </script>
   
-  <style scoped> </style>
+<style scoped>
+ :deep .header-text {
+   margin-bottom: 0px !important;
+ }
+</style>
   
