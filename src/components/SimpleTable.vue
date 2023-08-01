@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div @click="handleClickOutside">
     <v-app>
       <v-card>
         <v-card-title>
@@ -18,7 +18,6 @@
           :items="filteredDesserts"
           :search="search"
           :options.sync="paginationOptions"
-          :server-items-length="totalData"
           :footer-props="{
             'items-per-page-options': [5, 10, 15],
           }"
@@ -26,7 +25,6 @@
           :height="550"
           :loading="tableLoading"
           loading-text="Loading...Please wait"
-          :custom-filter="filterTable"
         >
           <template
             v-for="(header, index) in headers"
@@ -36,30 +34,43 @@
               <p class="header-text">{{ header.text }}</p>
               <v-row align="center">
                 <v-col>
-                  <v-select
-                    v-if="filterOptions[header.value].length > 0"
-                    v-model="filterValues[header.value]"
-                    :items="filterOptions[header.value]"
-                    label="Filter"
-                    multiple
-                    chips
-                    small-chips
-                    clearable
+                  <button
+                    @click="
+                      toggleFilter(header.value);
+                      stopEvent($event);
+                    "
                   >
-                    <template v-slot:prepend-item>
-                      <v-list-item @click="resetFilter(header.value)">
-                        <v-list-item-action>
-                          <v-icon>mdi-refresh</v-icon>
-                        </v-list-item-action>
-                        <v-list-item-content>
-                          <v-list-item-title>Reset</v-list-item-title>
-                        </v-list-item-content>
-                      </v-list-item>
-                    </template>
-                  </v-select>
-                  <v-select v-else @click="resetFilter(header.value)"
-                    >Reset</v-select
+                    Filter
+                    <v-icon :class="{ 'rotate-icon': toggle[header.value] }">
+                      mdi-chevron-down
+                    </v-icon>
+                  </button>
+                  <div
+                    class="filter-box-wrapper"
+                    v-if="toggle[header.value]"
+                    @click.stop
                   >
+                    <div class="filter-box">
+                      <div
+                        v-for="option in filterOptions[header.value]"
+                        :key="option"
+                      >
+                        <label>
+                          <input
+                            type="checkbox"
+                            :value="option"
+                            v-model="filterValues[header.value]"
+                          />
+                          {{ option }}
+                        </label>
+                      </div>
+                      <div>
+                        <button @click="resetFilter(header.value)">
+                          Reset Filter
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </v-col>
               </v-row>
             </div>
@@ -103,8 +114,9 @@ export default {
       filterOptions: {},
       filterValues: {},
       paginationOptions: {},
-      // totalData: 0,
-      // tableLoading: false
+      toggle: {},
+      totalData: 0,
+      tableLoading: false,
     };
   },
   computed: {
@@ -139,13 +151,41 @@ export default {
         );
         this.$set(this.filterOptions, header.value, uniqueValues);
         this.$set(this.filterValues, header.value, []);
+        this.$set(this.toggle, header.value, false);
       }
     },
     resetFilter(column) {
       this.filterValues[column] = [];
     },
+    toggleFilter(column) {
+      for (const header of this.headers) {
+        if (header.value !== column) {
+          this.toggle[header.value] = false;
+        }
+      }
+      this.toggle[column] = !this.toggle[column];
+    },
     getResponseClass(response) {
       return response === "Yes" ? "response-yes" : "response-no";
+    },
+    stopEvent(event) {
+      event.stopPropagation();
+    },
+    handleClickOutside(event) {
+      const target = event.target;
+      const filterBoxes = document.querySelectorAll(".filter-box-wrapper");
+      let clickInsideFilterBox = false;
+      for (const box of filterBoxes) {
+        if (box.contains(target)) {
+          clickInsideFilterBox = true;
+          break;
+        }
+      }
+      if (!clickInsideFilterBox) {
+        for (const header of this.headers) {
+          this.toggle[header.value] = false;
+        }
+      }
     },
   },
 };
@@ -164,5 +204,31 @@ export default {
 .response-no {
   background-color: red;
   color: white;
+}
+
+.rotate-icon {
+  transform: rotate(180deg);
+  transition: transform 0.2s;
+}
+
+.filter-box-wrapper {
+  position: absolute;
+  background-color: transparent;
+}
+
+.filter-box {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f8f8f8;
+  padding: 10px;
+  z-index: 1;
+  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+  min-width: 150px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.show-filter {
+  display: block;
 }
 </style>
